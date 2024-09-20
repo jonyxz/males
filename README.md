@@ -45,3 +45,8 @@ This script is used to create corrupt files with user-specified sizes and format
 This Corrupt File Generator is a simple yet useful tool to quickly create corrupt files for testing or experimentation. Whether you're using Bash or Python, you can easily generate files with random data in any format and size. We hope this tool is helpful for your needs, and feel free to contribute or provide feedback to improve it further.
 
 Thank you for using this tool, and happy coding!
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
