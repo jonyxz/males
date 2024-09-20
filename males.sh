@@ -1,10 +1,14 @@
-echo "Name :"
+#!/bin/bash
+
+echo "Name:"
 read NAME
 echo ""
-echo "Format :"
+echo "Format (contoh: txt, jpg, mp4, dll):"
 read FORMAT
 echo ""
-echo "Size :"
+echo "Size (dalam bytes, contoh: 1024):"
 read SIZE
 echo ""
-dd if=/dev/null of="$NAME.$FORMAT" count=0 seek=$SIZE
+
+dd if=/dev/urandom of="$NAME.$FORMAT" bs=1 count=$SIZE
+echo "File '$NAME.$FORMAT' sebesar $SIZE bytes telah dibuat."
