@@ -3,7 +3,7 @@
 echo "Name:"
 read NAME
 echo ""
-echo "Format (contoh: txt, jpg, mp4, dll):"
+echo "Format (contoh: doc, jpg, mp4):"
 read FORMAT
 echo ""
 echo "Size (dalam bytes, contoh: 1024):"
