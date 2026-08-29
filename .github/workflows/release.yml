@@ -1,0 +1,76 @@
+name: Release Rust
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag/name (e.g. v1.0.0)
+        required: true
+        default: v0.1.0
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: males-rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Ad-hoc codesign (macOS)
+        if: runner.os == 'macOS'
+        run: codesign --force --deep --sign - target/release/males-rust
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.os }}
+          path: males-rust/target/release/males-rust*
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Rename binaries
+        run: |
+          RELEASE_NAME="${{ github.event.inputs.tag || github.ref_name }}"
+          mv dist/binary-ubuntu-latest/males-rust \
+             "dist/males-rust-${RELEASE_NAME}-linux"
+          chmod +x "dist/males-rust-${RELEASE_NAME}-linux"
+          mv dist/binary-macos-latest/males-rust \
+             "dist/males-rust-${RELEASE_NAME}-macos"
+          chmod +x "dist/males-rust-${RELEASE_NAME}-macos"
+          mv dist/binary-windows-latest/males-rust.exe \
+             "dist/males-rust-${RELEASE_NAME}-windows.exe"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE_NAME="${{ github.event.inputs.tag || github.ref_name }}"
+          gh release create "$RELEASE_NAME" dist/males-rust-* --generate-notes

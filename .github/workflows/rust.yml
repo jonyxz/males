@@ -1,0 +1,50 @@
+name: Build Rust
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'males-rust/**'
+      - '.github/workflows/rust.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'males-rust/**'
+      - '.github/workflows/rust.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: males-rust
+
+jobs:
+  build:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: males-rust-${{ matrix.os }}
+          path: males-rust/target/release/males-rust*
+          if-no-files-found: error
